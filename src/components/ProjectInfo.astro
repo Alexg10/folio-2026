@@ -1,0 +1,47 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  index: number;
+  total: number;
+  /** "panel": desktop sticky panel (one visible at a time), "inline": under each cover on mobile */
+  variant: 'panel' | 'inline';
+  active?: boolean;
+}
+
+const { project, index, total, variant, active = false } = Astro.props;
+const { title, client, role, stack, summary } = project.data;
+const pad = (n: number) => String(n).padStart(2, '0');
+const panel = variant === 'panel';
+// Panel: labels swap instantly (they look fixed), values fade and slide in
+const label = panel && 'invisible group-data-active:visible';
+const value =
+  panel &&
+  'invisible translate-y-3 opacity-0 transition duration-300 motion-reduce:transition-none group-data-active:visible group-data-active:translate-y-0 group-data-active:opacity-100';
+---
+
+<div
+  data-index={index}
+  data-active={active ? '' : undefined}
+  class:list={['grid content-start gap-6', panel && 'group col-start-1 row-start-1']}
+>
+  {!panel && <p class="text-label -mb-2">{pad(index + 1)} / {pad(total)}</p>}
+  <dl class="grid content-start gap-1">
+    <div class="flex items-baseline gap-3">
+      <dt class:list={['text-label min-w-14 flex-none', label]}>Client</dt>
+      <dd class:list={['text-display', value]}>{client}</dd>
+    </div>
+    <div class="flex items-baseline gap-3">
+      <dt class:list={['text-label flex-none', label]}>Role</dt>
+      <dd class:list={['text-display', value]}>{role.join(' + ').replaceAll('-', '\u2011')}</dd>
+    </div>
+  </dl>
+  <div class:list={['grid max-w-[40ch] gap-4', panel && 'pl-[4.25rem]', value]}>
+    <p class="text-muted">{summary}</p>
+    <p class="text-label">{stack.join(' / ')}</p>
+    <a class="justify-self-start border-b-2 border-transparent transition-colors hover:border-current" href={`/projects/${project.id}`}>
+      View project<span class="sr-only">: {title}</span>
+    </a>
+  </div>
+</div>

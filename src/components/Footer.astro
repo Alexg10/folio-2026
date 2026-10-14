@@ -1,0 +1,12 @@
+---
+import { site } from '../data/site';
+---
+
+<footer class="grid gap-3 pt-16 pb-4">
+  <p class="text-label">Get in touch</p>
+  <a class="text-[clamp(1.25rem,6vw,2.25rem)] leading-none font-extrabold break-all hover:text-muted" href={`mailto:${site.email}`}>{site.email}</a>
+  <ul class="flex gap-4">
+    {site.links.map((l) => <li><a class="hover:text-muted" href={l.href} target="_blank" rel="noopener">{l.label}</a></li>)}
+  </ul>
+  <p class="text-label">© {new Date().getFullYear()} {site.name}</p>
+</footer>

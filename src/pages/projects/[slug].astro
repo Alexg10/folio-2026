@@ -1,0 +1,76 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Media from '../../components/Media.astro';
+import Arrows from '../../components/Arrows.astro';
+import Prose from '../../components/Prose.astro';
+import Footer from '../../components/Footer.astro';
+import { getProjects } from '../../lib';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: {
+      project,
+      index: i,
+      total: projects.length,
+      next: projects[(i + 1) % projects.length],
+      prev: projects[(i - 1 + projects.length) % projects.length],
+    },
+  }));
+}
+
+const { project, index, total, next, prev } = Astro.props;
+const { title, client, role, year, stack, summary, cover, gallery, url, repo } = project.data;
+const { Content } = await render(project);
+const meta = [
+  { label: 'Client', value: client },
+  { label: 'Year', value: year },
+  { label: 'Role', value: role.join(' + ') },
+  { label: 'Stack', value: stack.join(' / ') },
+].filter((m) => m.value !== undefined);
+---
+
+<Base title={title} description={summary}>
+  <div class="grid gap-12 p-4 lg:grid-cols-2 lg:items-start lg:gap-5 lg:px-5 lg:py-0">
+    <aside class="grid min-w-0 content-start gap-12 lg:min-h-dvh lg:grid-rows-[auto_1fr_auto] lg:py-5">
+      <Header compact />
+      <article class="grid content-start gap-6">
+        <h1 class="text-[clamp(2.25rem,11vw,5rem)] leading-[0.88] font-black font-stretch-112% tracking-[-0.04em]">{title}</h1>
+        <dl class="grid grid-cols-2 gap-4 border-y border-line py-4">
+          {
+            meta.map((m) => (
+              <div>
+                <dt class="text-label">{m.label}</dt>
+                <dd class="mt-1">{m.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        <p class="max-w-[36ch] text-[clamp(1.125rem,4.5vw,1.5rem)] leading-[1.15] font-extrabold">{summary}</p>
+        {
+          (url || repo) && (
+            <p class="flex flex-wrap gap-6">
+              {url && <a class="border-b-2 border-transparent hover:border-current" href={url} target="_blank" rel="noopener">Visit site ↗</a>}
+              {repo && <a class="border-b-2 border-transparent hover:border-current" href={repo} target="_blank" rel="noopener">Source code ↗</a>}
+            </p>
+          )
+        }
+        <Prose><Content /></Prose>
+      </article>
+      <Arrows
+        index={index}
+        total={total}
+        prev={{ title: prev.data.title, href: `/projects/${prev.id}` }}
+        next={{ title: next.data.title, href: `/projects/${next.id}` }}
+      />
+    </aside>
+    <div class="grid min-w-0 gap-4 lg:gap-5 lg:py-5">
+      <Media src={cover} alt={`${title} cover`} eager />
+      {gallery.map((src, i) => <Media src={src} alt={`${title} screen ${i + 1}`} />)}
+      <Footer />
+    </div>
+  </div>
+</Base>

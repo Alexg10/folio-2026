@@ -1,0 +1,60 @@
+---
+interface Target {
+  title: string;
+  /** Link to the project (project pages). Without it, a button driven by JS (home). */
+  href?: string;
+}
+
+interface Props {
+  prev: Target;
+  next: Target;
+  index: number;
+  total: number;
+  /** Stack arrows and counter in a column */
+  vertical?: boolean;
+  class?: string;
+}
+
+const { prev, next, index, total, vertical = false, class: className } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, '0');
+const buttons = [
+  { key: 'prev', label: 'Previous project', target: prev, path: 'M12 19V5m-6 6 6-6 6 6', nudge: 'group-hover:-translate-y-1' },
+  { key: 'next', label: 'Next project', target: next, path: 'M12 5v14m-6-6 6 6 6-6', nudge: 'group-hover:translate-y-1' },
+];
+---
+
+<nav aria-label="Projects" class:list={['flex items-center gap-2', vertical && 'flex-col', className]}>
+  {
+    buttons.map(({ key, label, target, path, nudge }, i) => {
+      const Tag = target.href ? 'a' : 'button';
+      return (
+        <>
+          {i === 1 && (
+            <span class="text-label tabular-nums">
+              <span data-current>{pad(index + 1)}</span> / {pad(total)}
+            </span>
+          )}
+          <Tag
+            href={target.href}
+            type={target.href ? undefined : 'button'}
+            data-arrow={key}
+            aria-label={`${label}: ${target.title}`}
+            title={target.title}
+            class="group grid size-11 cursor-pointer place-items-center hover:text-muted"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              class:list={['size-7 transition-transform motion-reduce:transition-none', nudge]}
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              aria-hidden="true"
+            >
+              <path d={path} />
+            </svg>
+          </Tag>
+        </>
+      );
+    })
+  }
+</nav>

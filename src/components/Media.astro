@@ -1,0 +1,19 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  eager?: boolean;
+  class?: string;
+}
+
+const { src, alt, eager = false, class: className } = Astro.props;
+const isVideo = /\.(mp4|webm)$/i.test(src);
+---
+
+{
+  isVideo ? (
+    <video class:list={['block w-full bg-line', className]} src={src} autoplay muted loop playsinline preload="metadata" aria-label={alt} />
+  ) : (
+    <img class:list={['block w-full bg-line', className]} src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+  )
+}

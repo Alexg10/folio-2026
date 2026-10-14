@@ -1,0 +1,19 @@
+---
+import Base from './Base.astro';
+import Header from '../components/Header.astro';
+import Prose from '../components/Prose.astro';
+import Footer from '../components/Footer.astro';
+
+const { frontmatter } = Astro.props;
+---
+
+<Base title={frontmatter.title} description={frontmatter.description}>
+  <div class="grid gap-12 p-4 lg:p-5">
+    <Header centered />
+    <main class="mx-auto w-full max-w-prose">
+      <h1 class="sr-only">{frontmatter.title}</h1>
+      <Prose><slot /></Prose>
+    </main>
+    <Footer />
+  </div>
+</Base>

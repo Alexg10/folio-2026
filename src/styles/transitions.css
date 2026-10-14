@@ -1,0 +1,69 @@
+/*
+  Cross-page transitions (native View Transitions API, no JS).
+  Work → About: the project list slides out to the right, then the tagline
+  moves to the centre while the rest of the text fades. About → Work plays it back.
+  Browsers without support simply navigate normally.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  /* 1. Project list leaves to the right / comes back from the right */
+  ::view-transition-old(reel) {
+    animation: vt-slide-out 0.4s cubic-bezier(0.7, 0, 0.84, 0) both;
+  }
+
+  ::view-transition-new(reel) {
+    animation: vt-slide-in 0.5s 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* 2. Tagline block moves to the centre once the list is gone */
+  ::view-transition-group(tagline) {
+    animation-delay: 0.3s;
+    animation-duration: 0.55s;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+    animation-fill-mode: both;
+  }
+
+  ::view-transition-old(tagline) {
+    animation: vt-fade-out 0.15s 0.3s linear both;
+  }
+
+  ::view-transition-new(tagline) {
+    animation: vt-fade-in 0.15s 0.3s linear both;
+  }
+
+  /* 3. Everything else fades out, then the new page's text fades in */
+  ::view-transition-old(root) {
+    animation: vt-fade-out 0.25s ease both;
+  }
+
+  ::view-transition-new(root) {
+    animation: vt-fade-in 0.35s 0.75s ease both;
+  }
+}
+
+@keyframes vt-slide-out {
+  to {
+    transform: translateX(110vw);
+  }
+}
+
+@keyframes vt-slide-in {
+  from {
+    transform: translateX(110vw);
+  }
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}

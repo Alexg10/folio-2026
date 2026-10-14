@@ -1,0 +1,121 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Media from '../components/Media.astro';
+import ProjectInfo from '../components/ProjectInfo.astro';
+import Arrows from '../components/Arrows.astro';
+import Footer from '../components/Footer.astro';
+import { getProjects } from '../lib';
+
+const projects = await getProjects();
+const total = projects.length;
+---
+
+<Base>
+  <div class="p-4 lg:grid lg:grid-cols-[1fr_34vw] lg:gap-5 lg:px-5 lg:py-0">
+    <!-- Desktop: sticky panel with the active project's info -->
+    <aside class="min-w-0 pb-12 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:py-5">
+      <Header />
+      <div class="hidden flex-1 items-center pt-10 pr-16 lg:grid">
+        <div class="relative grid">
+          <div class="grid" aria-live="polite">
+            {projects.map((p, i) => <ProjectInfo project={p} index={i} total={total} variant="panel" active={i === 0} />)}
+          </div>
+          <!-- Fixed, centered on the CLIENT line (same line-height as text-display) -->
+          <Arrows
+            vertical
+            class="absolute -right-16 top-[calc(clamp(2rem,3.6vw,4rem)*0.475)] -translate-y-1/2"
+            index={0}
+            total={total}
+            prev={{ title: projects[total - 1].data.title }}
+            next={{ title: projects[1 % total].data.title }}
+          />
+        </div>
+      </div>
+    </aside>
+
+    <main class="grid min-w-0 gap-16 [view-transition-name:reel] lg:gap-5 lg:py-5">
+      <h1 class="sr-only">Selected work</h1>
+      {
+        projects.map((p, i) => (
+          <section class="reel-item grid gap-4 lg:gap-5" id={p.id} data-index={i} aria-label={p.data.title}>
+            <a href={`/projects/${p.id}`} tabindex="-1" class="group overflow-hidden">
+              <Media
+                src={p.data.cover}
+                alt={`${p.data.title} preview`}
+                eager={i === 0}
+                class="aspect-2/1 object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.02] motion-reduce:transition-none"
+              />
+            </a>
+            <div class="lg:hidden">
+              <ProjectInfo project={p} index={i} total={total} variant="inline" />
+            </div>
+          </section>
+        ))
+      }
+      <Footer />
+    </main>
+  </div>
+</Base>
+
+<script>
+  const items = [...document.querySelectorAll<HTMLElement>('.reel-item')];
+  const infos = [...document.querySelectorAll<HTMLElement>('aside [data-index]')];
+  const prev = document.querySelector<HTMLButtonElement>('[data-arrow="prev"]')!;
+  const next = document.querySelector<HTMLButtonElement>('[data-arrow="next"]')!;
+  const counter = document.querySelector<HTMLElement>('[data-current]')!;
+  const titles = items.map((el) => el.getAttribute('aria-label') ?? '');
+  const total = items.length;
+  let current = -1;
+
+  function setActive(i: number) {
+    current = i;
+    infos.forEach((el, j) => el.toggleAttribute('data-active', j === i));
+    counter.textContent = String(i + 1).padStart(2, '0');
+    const p = titles[(i - 1 + total) % total];
+    const n = titles[(i + 1) % total];
+    prev.title = p;
+    prev.setAttribute('aria-label', `Previous project: ${p}`);
+    next.title = n;
+    next.setAttribute('aria-label', `Next project: ${n}`);
+  }
+
+
+  // Reference line moving down the viewport with scroll progress: first
+  // project active at the top of the page, last one at the bottom.
+  function scrollMax() {
+    return document.documentElement.scrollHeight - innerHeight;
+  }
+
+  function update() {
+    const max = scrollMax();
+    const line = max > 0 ? (scrollY / max) * innerHeight : 0;
+    let best = 0;
+    let bestDist = Infinity;
+    items.forEach((el, i) => {
+      const r = el.getBoundingClientRect();
+      const dist = Math.abs(r.top + r.height / 2 - line);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    if (best !== current) setActive(best);
+  }
+
+  addEventListener('scroll', update, { passive: true });
+  addEventListener('resize', update);
+  update();
+
+  // Scroll to where the reference line meets the project's center
+  function go(i: number) {
+    const max = scrollMax();
+    const r = items[i].getBoundingClientRect();
+    const center = r.top + scrollY + r.height / 2;
+    const top = max > 0 ? Math.min(max, center / (1 + innerHeight / max)) : 0;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+  }
+  prev.addEventListener('click', () => go((current - 1 + total) % total));
+  next.addEventListener('click', () => go((current + 1) % total));
+</script>
