@@ -13,7 +13,14 @@ const path = Astro.url.pathname;
 const links = [
   { href: '/', label: 'Work', active: path === '/' || path.startsWith('/projects') },
   { href: '/about', label: 'About', active: path.startsWith('/about') },
-];
+].map((l) => ({
+  ...l,
+  // Already on this exact page: plain text, not a link (no useless reload)
+  current: path.replace(/\/$/, '') === l.href.replace(/\/$/, ''),
+}));
+// On the home page the wordmark is not a link (clicking it would just reload)
+const isHome = path === '/';
+const Wordmark = isHome ? 'span' : 'a';
 ---
 
 <header class="relative grid gap-3 lg:gap-6">
@@ -22,27 +29,33 @@ const links = [
     class="flex justify-end gap-4 [view-transition-name:nav] lg:absolute lg:top-0 lg:right-0 lg:flex-col lg:items-end lg:gap-0.5"
   >
     {
-      links.map((l) => (
-        <a
-          href={l.href}
-          aria-current={l.active ? 'page' : undefined}
-          class="flex items-center gap-1.5 hover:text-muted aria-[current=page]:after:h-2.5 aria-[current=page]:after:w-7 aria-[current=page]:after:bg-current aria-[current=page]:after:content-['']"
-        >
-          {l.label}
-        </a>
-      ))
+      links.map((l) => {
+        const Tag = l.current ? 'span' : 'a';
+        return (
+          <Tag
+            href={l.current ? undefined : l.href}
+            aria-current={l.active ? 'page' : undefined}
+            class:list={[
+              "flex items-center gap-1.5 aria-[current=page]:after:h-2.5 aria-[current=page]:after:w-7 aria-[current=page]:after:bg-current aria-[current=page]:after:content-['']",
+              !l.current && 'hover:text-muted',
+            ]}
+          >
+            {l.label}
+          </Tag>
+        );
+      })
     }
   </nav>
-  <a
-    href="/"
-    aria-label={`${site.name}, home`}
+  <Wordmark
+    href={isHome ? undefined : '/'}
+    aria-label={isHome ? undefined : `${site.name}, home`}
     class:list={[
       'justify-self-start -ml-[0.04em] leading-[0.8] font-black font-stretch-125% tracking-[-0.06em] [view-transition-name:wordmark] lg:pr-28',
       compact ? 'text-[14.5vw] lg:text-[clamp(3rem,5vw,6rem)]' : 'text-[14.5vw] lg:text-[clamp(4rem,8.5vw,11rem)]',
     ]}
   >
     {site.wordmark.map((word) => <span class="block">{word}</span>)}
-  </a>
+  </Wordmark>
   {
     !compact && (
       <p

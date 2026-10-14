@@ -70,7 +70,10 @@ const total = projects.length;
 
   function setActive(i: number) {
     current = i;
-    infos.forEach((el, j) => el.toggleAttribute('data-active', j === i));
+    infos.forEach((el, j) => {
+      el.toggleAttribute('data-active', j === i);
+      el.setAttribute('aria-hidden', String(j !== i));
+    });
     counter.textContent = String(i + 1).padStart(2, '0');
     const p = titles[(i - 1 + total) % total];
     const n = titles[(i + 1) % total];

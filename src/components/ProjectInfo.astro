@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import SplitText from './SplitText.astro';
 
 interface Props {
   project: CollectionEntry<'projects'>;
@@ -12,9 +13,11 @@ interface Props {
 
 const { project, index, total, variant, active = false } = Astro.props;
 const { title, client, role, stack, summary } = project.data;
+const roleText = role.join(' + ').replaceAll('-', '\u2011');
 const pad = (n: number) => String(n).padStart(2, '0');
 const panel = variant === 'panel';
-// Panel: labels swap instantly (they look fixed), values fade and slide in
+// Panel: labels swap instantly (they look fixed), titles come in letter by
+// letter, the rest fades and slides in
 const label = panel && 'invisible group-data-active:visible';
 const value =
   panel &&
@@ -24,20 +27,21 @@ const value =
 <div
   data-index={index}
   data-active={active ? '' : undefined}
+  aria-hidden={panel && !active ? 'true' : undefined}
   class:list={['grid content-start gap-6', panel && 'group col-start-1 row-start-1']}
 >
   {!panel && <p class="text-label -mb-2">{pad(index + 1)} / {pad(total)}</p>}
   <dl class="grid content-start gap-1">
     <div class="flex items-baseline gap-3">
       <dt class:list={['text-label min-w-14 flex-none', label]}>Client</dt>
-      <dd class:list={['text-display', value]}>{client}</dd>
+      <dd class="text-display">{panel ? <SplitText text={client} /> : client}</dd>
     </div>
     <div class="flex items-baseline gap-3">
       <dt class:list={['text-label flex-none', label]}>Role</dt>
-      <dd class:list={['text-display', value]}>{role.join(' + ').replaceAll('-', '\u2011')}</dd>
+      <dd class="text-display">{panel ? <SplitText text={roleText} delay={120} /> : roleText}</dd>
     </div>
   </dl>
-  <div class:list={['grid max-w-[40ch] gap-4', panel && 'pl-[4.25rem]', value]}>
+  <div class:list={['grid max-w-[48ch] gap-4', panel && 'pl-[4.25rem]', value]}>
     <p class="text-muted">{summary}</p>
     <p class="text-label">{stack.join(' / ')}</p>
     <a class="justify-self-start border-b-2 border-transparent transition-colors hover:border-current" href={`/projects/${project.id}`}>

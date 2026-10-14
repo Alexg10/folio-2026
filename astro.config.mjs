@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   // Set your production URL here (used for canonical / OG tags)
-  site: 'https://example.com',
+  site: 'https://alexandre-guerard.fr',
   vite: {
     plugins: [tailwindcss()],
   },
