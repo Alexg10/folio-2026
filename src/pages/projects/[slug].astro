@@ -25,6 +25,10 @@ export async function getStaticPaths() {
 const { project, index, total, next, prev } = Astro.props;
 const { title, role, stack, summary, cover, gallery, url, repo } = project.data;
 const { Content } = await render(project);
+const images = [
+  { src: cover, alt: `${title} cover` },
+  ...gallery.map((src, i) => ({ src, alt: `${title} screen ${i + 1}` })),
+];
 const meta = [
   { label: 'Role', value: role.join(' + ') },
   { label: 'Stack', value: stack.join(' / ') },
@@ -56,6 +60,10 @@ const meta = [
             </p>
           )
         }
+        <!-- Mobile: images between the links and the case study -->
+        <div class="grid gap-4 lg:hidden">
+          {images.map((img, i) => <Media src={img.src} alt={img.alt} eager={i === 0} />)}
+        </div>
         <Prose><Content /></Prose>
       </article>
       <Arrows
@@ -66,8 +74,10 @@ const meta = [
       />
     </aside>
     <div class="grid min-w-0 gap-4 lg:gap-5 lg:py-5">
-      <Media src={cover} alt={`${title} cover`} eager />
-      {gallery.map((src, i) => <Media src={src} alt={`${title} screen ${i + 1}`} />)}
+      <!-- Desktop: images in the right column -->
+      <div class="hidden gap-5 lg:grid">
+        {images.map((img, i) => <Media src={img.src} alt={img.alt} eager={i === 0} />)}
+      </div>
       <Footer />
     </div>
   </div>
