@@ -2,6 +2,7 @@
 import '@fontsource-variable/archivo/wdth.css';
 import '../styles/global.css';
 import '../styles/transitions.css';
+import Analytics from '@vercel/analytics/astro';
 import { site } from '../data/site';
 
 interface Props {
@@ -23,6 +24,7 @@ const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — Front-
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <Analytics />
   </head>
   <body>
     <slot />
